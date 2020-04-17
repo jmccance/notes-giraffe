@@ -1,2 +1,2 @@
-[*.fs]
+[*.{fs,fsx}]
 indent_size = 4

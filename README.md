@@ -1,31 +1,22 @@
-# GiraffeNotes
+GiraffeNotes
+============
 
-A [Giraffe](https://github.com/giraffe-fsharp/Giraffe) web application, which has been created via the `dotnet new giraffe` command.
+An experiment in creating a web API with [Giraffe](https://github.com/giraffe-fsharp/Giraffe) and [F#](https://fsharp.org). 
 
-## Build and test the application
+Quick Start
+-----------
 
-### Windows
+Requirements:
 
-Run the `build.bat` script in order to restore, build and test (if you've selected to include tests) the application:
+- .NET Core 3.1
 
-```
-> ./build.bat
-```
-
-### Linux/macOS
-
-Run the `build.sh` script in order to restore, build and test (if you've selected to include tests) the application:
+To run the app from the root project directory:
 
 ```
-$ ./build.sh
+dotnet run -p GiraffeNotes
 ```
 
-## Run the application
-
-After a successful build you can start the web application by executing the following command in your terminal:
+You should see some logging indicating the app has started. Verify that things are working with:
 
 ```
-dotnet run src/GiraffeNotes
-```
-
-After the application has started visit [http://localhost:5000](http://localhost:5000) in your preferred browser.
+curl -v http://localhost:5000/

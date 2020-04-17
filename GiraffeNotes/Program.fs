@@ -11,23 +11,14 @@ open Giraffe
 [<EntryPoint>]
 let main _ =
     Log.Logger <-
-        (LoggerConfiguration())
-            .MinimumLevel.Information()
+        (LoggerConfiguration()).MinimumLevel.Information()
             .Enrich.WithProperty("Environment", Config.environmentName)
-            .Enrich.WithProperty("Application", "DustedCodes")
-            .WriteTo.Console()
-            .CreateLogger()
+            .Enrich.WithProperty("Application", "DustedCodes").WriteTo.Console().CreateLogger()
 
     Log.Information "Starting GiraffeNotes..."
-    
+
     Host.CreateDefaultBuilder()
-        .ConfigureWebHostDefaults(
-            fun webHostBuilder ->
-                webHostBuilder
-                    .UseSerilog()
-                    .Configure(Web.configureApp)
-                    .ConfigureServices(Web.configureServices)
-                    |> ignore)
-        .Build()
-        .Run()
+        .ConfigureWebHostDefaults(fun webHostBuilder ->
+        webHostBuilder.UseSerilog().Configure(Web.configureApp)
+                      .ConfigureServices(Web.configureServices) |> ignore).Build().Run()
     0

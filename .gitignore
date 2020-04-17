@@ -1,5 +1,6 @@
+.fake
+.ionide
 [Bb]in/
 [Oo]bj/
 *.suo
 packages/
-.ionide
