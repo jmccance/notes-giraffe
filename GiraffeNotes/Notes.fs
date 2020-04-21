@@ -9,17 +9,9 @@ type Note =
       Text: string
       CreatedAt: DateTime }
 
-module Database =
+module Persistence =
+    open Database
     open FSharp.Data.Sql
-
-    type private Sql =
-        SqlDataProvider<Common.DatabaseProviderTypes.POSTGRESQL,
-                        "Host=localhost;Database=example;Username=user;Password=password",
-                        CaseSensitivityChange=Common.CaseSensitivityChange.ORIGINAL>
-
-    type private NoteEntity = Sql.dataContext.``public.noteEntity``
-
-    let private ctx = Sql.GetDataContext()
 
     let private toModel (note: NoteEntity) =
         { Id = note.Id.ToString()
@@ -27,15 +19,14 @@ module Database =
           Text = note.Text
           CreatedAt = note.CreatedAt }
 
-    module Notes =
-        let getById id =
-            query {
-                for note in ctx.Public.Note do
-                    where (note.Id = id)
-                    select note
-            }
-            |> Seq.map toModel
-            |> Seq.tryHead
+    let getById id =
+        query {
+            for note in ctx.Public.Note do
+                where (note.Id = id)
+                select note
+        }
+        |> Seq.map toModel
+        |> Seq.tryHead
 
 module Web =
     type private CreateNoteReq =
@@ -47,7 +38,7 @@ module Web =
     let getNote (id: string): HttpHandler =
         id
         |> Guid.Parse
-        |> Database.Notes.getById
+        |> Persistence.getById
         |> Option.map json
         |> Option.defaultValue (json "Not found")
 
