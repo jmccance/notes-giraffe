@@ -8,6 +8,7 @@ open System
 open Microsoft.AspNetCore.Authentication.JwtBearer
 open Microsoft.IdentityModel.Tokens
 open System.Security.Claims
+open Microsoft.Extensions.Configuration
 
 // ---------------------------------
 // Response Helpers
@@ -34,6 +35,9 @@ let internalError message: HttpHandler =
 
 let authenticated: HttpHandler = requiresAuthentication unauthorized
 
+let bindUser (f: ClaimsPrincipal -> HttpHandler): HttpHandler =
+    warbler (fun _ -> fun next ctx -> f ctx.User next ctx)
+
 // ---------------------------------
 // Handlers
 // ---------------------------------
@@ -43,8 +47,8 @@ module Notes =
     type CreateNoteReq =
         { Text: string }
 
-    let newNote (req: CreateNoteReq): HttpHandler =
-        let newNote = Notes.saveNew "google-oauth2|101971299993373356905" req.Text
+    let newNote (user: ClaimsPrincipal) (req: CreateNoteReq): HttpHandler =
+        let newNote = Notes.saveNew user.Identity.Name req.Text
         json newNote
 
     let getNote (id: string): HttpHandler =
@@ -60,7 +64,10 @@ module Notes =
             [ POST
                 >=> route "/notes"
                 >=> authenticated
-                >=> bindModel<CreateNoteReq> None newNote
+                >=> bindUser (fun u ->
+                    bindModel<CreateNoteReq> None (fun req ->
+                    newNote u req ))
+                
                 
               GET >=> routef "/notes/%s" getNote ]
 
@@ -88,11 +95,19 @@ let configureApp (app: IApplicationBuilder) =
         .UseGiraffe webApp
 
 let configureServices (services: IServiceCollection) =
+    let config = 
+        services
+            .BuildServiceProvider()
+            .GetService<IConfiguration>()
+            .Get<Config.Configuration>()
+
     services
         .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(fun options ->
-            options.Authority <- "https://notes-api-demo.auth0.com/"
-            options.Audience <- "https://notes-api/"
+            let bearerConfig = config.Authentication.JwtBearer
+
+            options.Authority <- bearerConfig.Authority
+            options.Audience <- bearerConfig.Audience
 
             options.TokenValidationParameters <- TokenValidationParameters(
                 NameClaimType = ClaimTypes.NameIdentifier

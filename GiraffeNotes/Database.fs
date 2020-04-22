@@ -10,3 +10,6 @@ type Sql =
 type NoteEntity = Sql.dataContext.``public.noteEntity``
 
 let ctx = Sql.GetDataContext()
+
+type Database (connectionStr: string) =
+    member _.Context = Sql.GetDataContext connectionStr

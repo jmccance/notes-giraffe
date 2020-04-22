@@ -14,7 +14,7 @@ module Persistence =
 
     let notes = ctx.Public.Note
 
-    let private toModel (note: NoteEntity) =
+    let private toNote (note: NoteEntity) =
         { Id = note.Id.ToString()
           OwnerId = note.OwnerId
           Text = note.Text
@@ -26,7 +26,7 @@ module Persistence =
         row.OwnerId <- ownerId
         row.Text <- text
         ctx.SubmitUpdates()
-        toModel row
+        toNote row
 
     let getById id =
         query {
@@ -34,7 +34,7 @@ module Persistence =
                 where (note.Id = id)
                 select note
         }
-        |> Seq.map toModel
+        |> Seq.map toNote
         |> Seq.tryHead
 
 let saveNew = Persistence.saveNew
