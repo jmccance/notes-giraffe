@@ -1,6 +1,5 @@
 module GiraffeNotes.Notes
 
-open Giraffe
 open System
 
 type Note =
@@ -13,11 +12,21 @@ module Persistence =
     open Database
     open FSharp.Data.Sql
 
+    let notes = ctx.Public.Note
+
     let private toModel (note: NoteEntity) =
         { Id = note.Id.ToString()
           OwnerId = note.OwnerId
           Text = note.Text
           CreatedAt = note.CreatedAt }
+
+    let saveNew ownerId text =
+        let row = notes.Create()
+        row.Id <- Guid.NewGuid()
+        row.OwnerId <- ownerId
+        row.Text <- text
+        ctx.SubmitUpdates()
+        toModel row
 
     let getById id =
         query {
@@ -28,21 +37,9 @@ module Persistence =
         |> Seq.map toModel
         |> Seq.tryHead
 
-module Web =
-    type private CreateNoteReq =
-        { Text: string }
+let saveNew = Persistence.saveNew
 
-    let newNote: HttpHandler =
-        bindJson<CreateNoteReq> |> fun req -> ServerErrors.notImplemented <| text "TODO"
-
-    let getNote (id: string): HttpHandler =
-        id
-        |> Guid.Parse
-        |> Persistence.getById
-        |> Option.map json
-        |> Option.defaultValue (json "Not found")
-
-    let handlers: HttpHandler =
-        choose
-            [ GET >=> routef "/notes/%s" getNote
-              POST >=> route "/notes" >=> newNote ]
+let getById (id: string) =
+    match Guid.TryParse id with
+        | (true, parsedId) -> Persistence.getById parsedId
+        | (false, _) -> None

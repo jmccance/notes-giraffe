@@ -1,5 +1,5 @@
 namespace GiraffeNotes
 
-[<RequireQualifiedAccessAttribute>]
+[<RequireQualifiedAccess>]
 module Config =
     let environmentName = "Development"
